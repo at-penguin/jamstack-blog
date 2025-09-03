@@ -25,19 +25,21 @@ export default [
     {
         files: ["**/*.ts", "**/*.tsx"],
         rules: {
-            // Allow any type in type definition files and auto-generated files
-            "@typescript-eslint/no-explicit-any": "off",
+            // Enforce strict typing - no any allowed
+            "@typescript-eslint/no-explicit-any": "error",
             "@typescript-eslint/no-empty-object-type": "off",
             "@typescript-eslint/triple-slash-reference": "off",
         },
     },
 
-    // Astro specific overrides
-    ...eslintPluginAstro.configs.recommended,
+    // Type definition files - allow any for compatibility
     {
-        files: ["**/*.astro"],
+        files: ["**/*.d.ts"],
         rules: {
-            "astro/no-set-html-directive": "error",
+            "@typescript-eslint/no-explicit-any": "off",
         },
     },
+
+    // Astro specific overrides
+    ...eslintPluginAstro.configs.recommended,
 ]

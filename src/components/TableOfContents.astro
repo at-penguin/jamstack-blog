@@ -14,7 +14,7 @@ const toc: TocItem[] = $("h2, h3, h4")
     .map((element) => ({
         text: $(element).text(),
         id: $(element).attr("id") ?? "",
-        name: $(element).prop("tagName").toLowerCase() as string,
+        name: ($(element).prop("tagName")?.toLowerCase() ?? "h2") as string,
     }))
 ---
 

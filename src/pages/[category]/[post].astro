@@ -22,7 +22,7 @@ export async function getStaticPaths() {
 
 const { post } = Astro.props
 
-const promise: any = []
+const promises: Promise<void>[] = []
 const $ = load(post.old_content ?? post.content)
 $("pre").each(function (this: cheerio.Element) {
     const element = $(this)
@@ -40,9 +40,9 @@ $("pre").each(function (this: cheerio.Element) {
     }).then((highlight) => {
         element.replaceWith(highlight)
     })
-    promise.push(code)
+    promises.push(code)
 })
-await Promise.all(promise)
+await Promise.all(promises)
 
 $("figure img").each(function (this: cheerio.Element) {
     const element = $(this)
