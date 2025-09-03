@@ -1,0 +1,144 @@
+---
+import { addWebp } from "@/libraries/addWebp"
+import { formatDate } from "@/libraries/formatDate"
+import type { Post } from "@/types/type"
+import { Image } from "astro:assets"
+
+type Props = {
+    post: Post
+}
+
+const { post } = Astro.props
+---
+
+<li class="c-main__listItem">
+    <a href={`/${post.category.id}/${post.id}`} class="c-main__listItemWrapper">
+        <div class={`c-main__listItemCategory --${post.category.id}`}>{post.category.name}</div>
+        <div class="c-main__listItemImage">
+            {
+                post.eyecatch && (
+                    <Image
+                        src={addWebp(post.eyecatch.url)}
+                        alt={post.title}
+                        width={post.eyecatch.width || 800}
+                        height={post.eyecatch.height || 450}
+                    />
+                )
+            }
+        </div>
+        <div class="c-main__listItemTitle">
+            {post.title}
+            <span class="c-main__listItemDate">{formatDate(post.createdAt)}</span>
+        </div>
+    </a>
+</li>
+
+<style>
+    .c-main__listItem {
+        position: relative;
+        display: block;
+        height: 200px;
+    }
+
+    @media screen and (max-width: 768px) {
+        .c-main__listItem {
+            height: auto;
+        }
+    }
+
+    .c-main__listItem + .c-main__listItem {
+        margin-top: 60px;
+    }
+
+    @media screen and (max-width: 768px) {
+        .c-main__listItem + .c-main__listItem {
+            margin-top: 40px;
+        }
+    }
+
+    .c-main__listItemImage {
+        width: 260px;
+        height: 200px;
+        flex-shrink: 0;
+        background-color: var(--bg-sub);
+    }
+
+    @media screen and (max-width: 768px) {
+        .c-main__listItemImage {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+        }
+
+        .c-main__listItemImage img {
+            max-height: 120px;
+        }
+    }
+
+    .c-main__listItemImage img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        object-position: center;
+    }
+
+    .c-main__listItemTitle {
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        padding: 24px;
+        font-size: 20px;
+    }
+
+    .c-main__listItemDate {
+        display: block;
+        font-size: 14px;
+    }
+
+    .c-main__listItemWrapper {
+        display: flex;
+        flex-wrap: nowrap;
+        justify-content: flex-start;
+        background-color: var(--white);
+        border-radius: 50px;
+        overflow: hidden;
+    }
+
+    @media screen and (max-width: 768px) {
+        .c-main__listItemWrapper {
+            flex-wrap: wrap;
+        }
+    }
+
+    .c-main__listItemCategory {
+        position: absolute;
+        overflow: visible;
+        top: 0;
+        left: 40%;
+        padding: 4px 32px;
+        background-color: var(--white);
+        border-radius: 300px;
+        transform: translate(-50%, -50%);
+    }
+
+    @media screen and (max-width: 768px) {
+        .c-main__listItemCategory {
+            left: 30%;
+        }
+    }
+
+    .c-main__listItemCategory.--design {
+        color: var(--white);
+        background-color: var(--design);
+    }
+
+    .c-main__listItemCategory.--daily {
+        color: var(--white);
+        background-color: var(--daily);
+    }
+
+    .c-main__listItemCategory.--tech {
+        color: var(--white);
+        background-color: var(--tech);
+    }
+</style>

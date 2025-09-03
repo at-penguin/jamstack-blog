@@ -1,0 +1,31 @@
+---
+import ArticlePill from "@/components/ArticlePill.astro"
+import type { Post } from "@/types/type"
+
+type Props = {
+    posts: Post[]
+}
+
+const { posts } = Astro.props
+---
+
+<ul class="c-main__list">
+    {
+        posts.length > 0 ? (
+            posts.map((post) => <ArticlePill post={post} />)
+        ) : (
+            <p class="c-main__empty">このカテゴリーには記事がありません</p>
+        )
+    }
+</ul>
+
+<style>
+    .c-main__list {
+        padding-top: 80px;
+    }
+
+    .c-main__empty {
+        text-align: center;
+        margin-top: 40px;
+    }
+</style>

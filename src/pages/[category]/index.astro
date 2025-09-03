@@ -1,0 +1,25 @@
+---
+import CommonTemplate from "@/layouts/CommonTemplate.astro"
+import { getPosts, getCategories } from "@/libraries/microcms"
+import ArticleList from "@/components/ArticleList.astro"
+
+export async function getStaticPaths() {
+    const categories = await getCategories()
+    const posts = await getPosts()
+
+    return categories.map((category) => {
+        return {
+            params: { category: category.id },
+            props: { posts },
+        }
+    })
+}
+
+const { posts } = Astro.props
+
+const categoryPosts = posts.filter((post) => post.category.id === Astro.params.category)
+---
+
+<CommonTemplate currentPage={Astro.params.category}>
+    <ArticleList posts={categoryPosts} />
+</CommonTemplate>

@@ -1,0 +1,102 @@
+---
+import * as Cheerio from "cheerio"
+import type { TocItem } from "@/types/type.d.ts"
+
+type Props = {
+    contents: string
+}
+
+const { contents } = Astro.props
+
+const $ = Cheerio.load(contents)
+const toc: TocItem[] = $("h2, h3, h4")
+    .toArray()
+    .map((element) => ({
+        text: $(element).text(),
+        id: $(element).attr("id") ?? "",
+        name: $(element).prop("tagName").toLowerCase() as string,
+    }))
+---
+
+<div class="c-tableOfContents">
+    <p class="c-tableOfContents__title">もくじ</p>
+    <ul class="c-tableOfContents__items">
+        {
+            toc.length
+                ? toc.map((toc) => (
+                      <li class={`c-tableOfContents__item is-${toc.name}`}>
+                          <a href={`#${toc.id}`} class="c-tableOfContents__link">
+                              {toc.text}
+                          </a>
+                      </li>
+                  ))
+                : "もくじはありません…"
+        }
+    </ul>
+</div>
+
+<style>
+    .c-tableOfContents {
+        width: 100%;
+        min-height: 300px;
+        padding: 20px 28px;
+        border-radius: 50px 0 0 50px;
+        background-color: var(--white);
+        overflow-y: scroll;
+    }
+
+    @media (max-width: 768px) {
+        .c-tableOfContents {
+            display: none;
+        }
+    }
+
+    .c-tableOfContents::-webkit-scrollbar {
+        width: 5px;
+    }
+
+    .c-tableOfContents::-webkit-scrollbar-thumb {
+        background-color: var(--text-main);
+    }
+
+    .c-tableOfContents::-webkit-scrollbar-track {
+        background-color: transparent;
+    }
+
+    .c-tableOfContents__title {
+        font-size: 18px;
+        font-weight: 800;
+        text-align: center;
+    }
+
+    .c-tableOfContents__items {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        margin-top: 20px;
+    }
+
+    .c-tableOfContents__item.is-h2::before {
+        content: "●";
+        margin-right: 8px;
+    }
+
+    .c-tableOfContents__item.is-h3 {
+        font-size: 14px;
+    }
+
+    .c-tableOfContents__item.is-h3::before {
+        content: "○";
+        margin-right: 8px;
+    }
+
+    .c-tableOfContents__item.is-h4 {
+        font-size: 14px;
+        margin-left: 16px;
+    }
+
+    .c-tableOfContents__item.is-h4::before {
+        content: "-";
+        margin-right: 8px;
+    }
+</style>

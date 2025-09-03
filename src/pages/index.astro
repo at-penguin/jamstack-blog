@@ -1,0 +1,11 @@
+---
+import ArticleList from "@/components/ArticleList.astro"
+import CommonTemplate from "@/layouts/CommonTemplate.astro"
+import { getPosts } from "@/libraries/microcms"
+
+const posts = await getPosts()
+---
+
+<CommonTemplate currentPage="home">
+    <ArticleList posts={posts} />
+</CommonTemplate>

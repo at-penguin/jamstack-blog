@@ -1,0 +1,55 @@
+---
+import "@/styles/reset.css"
+import "@/styles/variables.css"
+import "@/styles/global.css"
+import type { Metadata } from "@/types/type.d.ts"
+import "@fontsource-variable/m-plus-1"
+import { SITE_TITLE, SITE_DESCRIPTION } from "@/constants/metadata.ts"
+
+type Props = Metadata
+const { title = SITE_TITLE, description = SITE_DESCRIPTION, keywords } = Astro.props
+
+// Arrayの場合は、カンマ区切りにする
+const formatKeywords = (keywords: string | string[] | undefined): string => {
+    if (Array.isArray(keywords)) {
+        return keywords.join(",")
+    }
+    return keywords ?? ""
+}
+---
+
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width" />
+        <link rel="icon" type="image/vnd.microsoft.icon" href="/favicon.ico" />
+        <meta name="generator" content={Astro.generator} />
+        <meta name="title" content={title} />
+        <meta name="og:title" content={title} />
+        <meta name="description" content={description} />
+        <meta name="og:description" content={description} />
+        <meta name="keywords" content={formatKeywords(keywords)} />
+        <title>{title}</title>
+
+        <link rel="canonical" href={Astro.url.toString()} />
+        <link rel="sitemap" href="/sitemap-index.xml" />
+
+        <!-- Google tag (gtag.js) -->
+        <script type="text/partytown" src="https://www.googletagmanager.com/gtag/js?id=G-GY0R7XR05P"></script>
+        <script type="text/partytown">
+            window.dataLayer = window.dataLayer || []
+            function gtag() {
+                dataLayer.push(arguments)
+            }
+            gtag("js", new Date())
+
+            gtag("config", "G-GY0R7XR05P")
+        </script>
+    </head>
+    <body>
+        <slot />
+    </body>
+</html>
+
+<style></style>

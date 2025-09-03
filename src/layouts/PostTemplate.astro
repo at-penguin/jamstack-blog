@@ -1,0 +1,23 @@
+---
+import Header from "@/components/Header.astro"
+import Footer from "@/components/Footer.astro"
+import Layout from "@/layouts/Layout.astro"
+import type { Post } from "@/types/type.d.ts"
+import TableOfContents from "@/components/TableOfContents.astro"
+
+type Props = {
+    post: Post
+}
+
+const { post } = Astro.props
+---
+
+<Layout>
+    <Header currentPage={post.category.id}>
+        <TableOfContents contents={post.old_content ?? post.content} slot="toc" />
+    </Header>
+    <main>
+        <slot />
+    </main>
+    <Footer />
+</Layout>

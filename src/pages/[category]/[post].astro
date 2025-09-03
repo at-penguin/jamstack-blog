@@ -1,0 +1,462 @@
+---
+import PostTemplate from "@/layouts/PostTemplate.astro"
+import { getPosts } from "@/libraries/microcms"
+import { formatDate } from "@/libraries/formatDate"
+import { addWebp } from "@/libraries/addWebp"
+import { SITE_URL } from "@/constants/metadata"
+import { load } from "cheerio"
+import { codeToHtml } from "shiki"
+import { addCopyButton } from "shiki-transformer-copy-button"
+import { Image } from "astro:assets"
+
+export async function getStaticPaths() {
+    const posts = await getPosts()
+
+    return posts.map((post) => {
+        return {
+            params: { category: post.category.id, post: post.id },
+            props: { post },
+        }
+    })
+}
+
+const { post } = Astro.props
+
+const promise: any = []
+const $ = load(post.old_content ?? post.content)
+$("pre").each(function (this: cheerio.Element) {
+    const element = $(this)
+    const fileName = element.parent().attr("data-filename")
+    const fileNameElement = `<div class="c-post__fileName">${fileName}</div>`
+    element.before(fileNameElement)
+    element.parent().addClass("c-post__code")
+
+    const lang = element.find("code")?.attr("class")?.replace("language-", "")
+
+    const code = codeToHtml(element.text(), {
+        lang: lang ?? "plaintext",
+        theme: "dark-plus",
+        transformers: [addCopyButton({ toggle: 3000 })],
+    }).then((highlight) => {
+        element.replaceWith(highlight)
+    })
+    promise.push(code)
+})
+await Promise.all(promise)
+
+$("figure img").each(function (this: cheerio.Element) {
+    const element = $(this)
+    const src = new URL(element.attr("src") ?? "")
+    src.searchParams.append("fm", "webp")
+    element.attr("src", src.toString())
+})
+
+const formattedContent = $.html()
+---
+
+<PostTemplate post={post}>
+    <article class="c-post">
+        <div class={`c-post__eyeCatch c-post__eyeCatch-${post.category.id}`}>
+            {
+                post.eyecatch !== undefined ? (
+                    <Image
+                        src={addWebp(post.eyecatch.url)}
+                        alt={post.title}
+                        width={post.eyecatch.width || 800}
+                        height={post.eyecatch.height || 450}
+                        loading="eager"
+                    />
+                ) : (
+                    <p class="c-post__eyeCatchCategory">{post.category.name}</p>
+                )
+            }
+        </div>
+        <div class="c-post__meta">
+            <ul class="c-post__tags">
+                {post.tags && post.tags.map((tag) => <li class="c-post__tag">{tag.tags}</li>)}
+            </ul>
+            <h1 class="c-post__title">{post.title}</h1>
+
+            <div class="c-post__category">
+                <a href={`/category/${post.category.id}`}>
+                    {post.category.name}
+                </a>
+            </div>
+            <div class="c-post__dates">
+                <p class="c-post__createdAt">
+                    {formatDate(post.createdAt)}
+                </p>
+                {post.createdAt !== post.updatedAt && <p class="c-post__updatedAt">{formatDate(post.updatedAt)}</p>}
+            </div>
+        </div>
+        <div class="c-post__contents" set:html={formattedContent} />
+        <div class="c-post__share">
+            <p class="c-post__shareText">Share!</p>
+            <div class="c-post__sns">
+                <a
+                    href={`https://twitter.com/intent/tweet?url=${SITE_URL}/${post.category.id}/${post.id}&text=${post.title}%20%7C%20To%20The%20First`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="c-post__snsItem is-twitter"
+                    aria-label="Twitterシェアボタン"
+                >
+                    <span class="c-post__snsItemText"> Twitter(X)でシェア </span>
+                </a>
+            </div>
+        </div>
+    </article>
+</PostTemplate>
+
+<style>
+    .c-post {
+        padding: 0 0 40px 0;
+        border-radius: 0 0 50px 50px;
+        box-shadow: 0 6px 16px 0 rgba(0, 0, 0, 0.05);
+        background-color: #ffffff;
+        z-index: 2;
+    }
+
+    .c-post__eyeCatch {
+        position: relative;
+        width: 100%;
+        aspect-ratio: 16 / 9;
+        border-radius: 0 0 0 100px;
+        background-color: var(--text-sub);
+        overflow: hidden;
+    }
+
+    .c-post__eyeCatch-design {
+        background-color: var(--design);
+    }
+
+    .c-post__eyeCatch-tech {
+        background-color: var(--tech);
+    }
+
+    .c-post__eyeCatch-daily {
+        background-color: var(--daily);
+    }
+
+    .c-post__eyeCatch img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .c-post__eyeCatchCategory {
+        position: absolute;
+        right: 0;
+        top: 100%;
+        font-size: 10vh;
+        font-weight: 800;
+        color: var(--white);
+        transform: translateY(-88%);
+        pointer-events: none;
+    }
+
+    .c-post__meta {
+        padding: 0 4%;
+    }
+
+    .c-post__tags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        margin-top: 24px;
+    }
+
+    .c-post__tag::before {
+        content: "#";
+        margin-right: 2px;
+    }
+
+    .c-post__title {
+        font-size: 2em;
+        font-weight: 800;
+        margin: 0.67em 0;
+    }
+
+    .c-post__dates {
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-end;
+        align-items: flex-end;
+    }
+
+    .c-post__createdAt,
+    .c-post__updatedAt {
+        position: relative;
+    }
+
+    .c-post__createdAt::before {
+        content: url(/icons/icon-pencil.svg);
+        position: absolute;
+        top: 60%;
+        left: -20px;
+        transform: translateY(-50%);
+    }
+
+    .c-post__updatedAt::before {
+        content: url(/icons/icon-refresh.svg);
+        position: absolute;
+        top: 60%;
+        left: -20px;
+        transform: translateY(-50%);
+    }
+
+    :global(.c-post__contents) {
+        margin-top: 40px;
+        padding: 0 5%;
+        word-break: break-all;
+
+        a {
+            text-decoration: underline;
+            text-decoration-thickness: 2px;
+            text-underline-offset: 2px;
+        }
+
+        h2 {
+            margin-top: 32px;
+            padding-bottom: 4px;
+            border-bottom: 1px solid var(--text-sub);
+        }
+
+        h3,
+        h4 {
+            margin-top: 32px;
+        }
+
+        p {
+            margin-top: 24px;
+            line-height: 1.8;
+        }
+
+        p > code {
+            box-sizing: border-box;
+            padding: 2px;
+            border: 1px solid var(--text-sub);
+            border-radius: 4px;
+            background-color: var(--bg-sub);
+            color: var(--text-orange);
+        }
+
+        ol {
+            list-style-type: decimal;
+            list-style-position: inside;
+        }
+
+        ol > li {
+            list-style-type: decimal;
+            list-style-position: inside;
+            line-height: 2;
+        }
+
+        ol > li > ol {
+            margin-left: 24px;
+        }
+
+        ul > li {
+            line-height: 2;
+        }
+
+        ul > li::before {
+            content: "-";
+            margin-right: 12px;
+        }
+
+        ul > li > ul {
+            margin-left: 24px;
+        }
+
+        blockquote {
+            position: relative;
+            margin-top: 24px;
+            padding: 24px;
+            box-sizing: border-box;
+            font-style: italic;
+            background: var(--bg-sub);
+            color: var(--text-brown);
+            border-left: 12px solid var(--bg-warm);
+            border-radius: 12px;
+            overflow: hidden;
+            z-index: 1;
+
+            &::before {
+                content: "“";
+                position: absolute;
+                top: -16px;
+                right: 38px;
+                font-size: 12em;
+                line-height: 1;
+                color: var(--bg-warm);
+                font-family: Impact, Haettenschweiler, "Arial Narrow Bold", sans-serif;
+                z-index: -1;
+            }
+        }
+
+        blockquote p:first-child {
+            margin-top: 0;
+        }
+
+        .c-post__code {
+            position: relative;
+            margin-top: 24px;
+            padding: 0;
+            border-radius: 12px;
+            overflow: hidden;
+            background-color: var(--bg-code);
+        }
+
+        .c-post__fileName {
+            padding: 4px 16px;
+            background-color: var(--bg-code-sub);
+            color: var(--white);
+        }
+
+        pre {
+            position: relative;
+            padding: 16px;
+            margin: 0;
+            overflow-x: scroll;
+            scrollbar-width: thin;
+            scrollbar-color: rgba(255, 255, 255, 0.3) rgba(255, 255, 255, 0.1);
+
+            &::-webkit-scrollbar {
+                height: 8px;
+            }
+
+            &::-webkit-scrollbar-track {
+                background: rgba(255, 255, 255, 0.1);
+                border-radius: 4px;
+            }
+
+            &::-webkit-scrollbar-thumb {
+                background: rgba(255, 255, 255, 0.3);
+                border-radius: 4px;
+            }
+
+            &::-webkit-scrollbar-thumb:hover {
+                background: rgba(255, 255, 255, 0.4);
+            }
+
+            /* Firefox用 */
+            scrollbar-width: thin;
+            scrollbar-color: rgba(255, 255, 255, 0.3) rgba(255, 255, 255, 0.1);
+
+            .copy {
+                position: absolute;
+                right: 16px;
+                top: 16px;
+                height: 28px;
+                width: 28px;
+                padding: 0;
+                display: flex;
+
+                & span {
+                    width: 100%;
+                    aspect-ratio: 1 / 1;
+                    background-repeat: no-repeat;
+                    background-position: center;
+                    background-size: cover;
+                }
+
+                & .ready {
+                    background-image: url(/icons/copy.svg);
+                    opacity: 0.4;
+                    transition: 0.1s;
+
+                    &:hover {
+                        opacity: 1;
+                    }
+                }
+
+                & .success {
+                    display: none;
+                    background-image: url(/icons/success.svg);
+                }
+
+                &.copied {
+                    & .success {
+                        display: block;
+                    }
+
+                    & .ready {
+                        display: none;
+                    }
+                }
+            }
+        }
+
+        figure {
+            margin-top: 24px;
+        }
+
+        .iframely-embed {
+            margin-top: 24px;
+            border-radius: 24px;
+        }
+    }
+
+    .embedly-embed {
+        max-width: 100%;
+        margin-top: 24px;
+    }
+
+    .c-post__share {
+        width: 100%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        flex-direction: column;
+        gap: 16px;
+        margin-top: 60px;
+    }
+
+    .c-post__shareText {
+        position: relative;
+    }
+
+    .c-post__shareText::before,
+    .c-post__shareText::after {
+        content: "";
+        display: inline-block;
+        position: absolute;
+        top: 50%;
+        width: 12px;
+        height: 1px;
+        border-radius: 3px;
+        background-color: var(--text-main);
+        opacity: 0.7;
+    }
+
+    .c-post__shareText::before {
+        left: -20px;
+        transform: rotate(50deg);
+    }
+
+    .c-post__shareText::after {
+        right: -20px;
+        transform: rotate(-50deg);
+    }
+
+    .c-post__snsItem {
+        display: block;
+        width: 60px;
+        height: 60px;
+        background-image: url(/icons/icon-twitter.svg);
+        background-size: 40px 40px;
+        background-position: 50%;
+        background-repeat: no-repeat;
+        background-color: var(--bg-sub);
+        border-radius: 50%;
+        box-shadow:
+            4px 4px 4px rgba(0, 0, 0, 0.1),
+            1px 1px 2px transparent,
+            inset 2px 2px 4px hsla(0, 0%, 100%, 0.9),
+            inset -2px -2px 4px rgba(0, 0, 0, 0.05);
+    }
+
+    .c-post__snsItemText {
+        display: none;
+    }
+</style>

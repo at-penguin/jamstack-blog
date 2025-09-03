@@ -1,0 +1,28 @@
+{
+    "name": "astro-microcms-netlify-blog",
+    "type": "module",
+    "version": "0.0.1",
+    "scripts": {
+        "dev": "astro dev",
+        "build": "astro build",
+        "preview": "astro preview",
+        "astro": "astro",
+        "prettier": "prettier --write \"./**/*.{js,jsx,ts,tsx,css,md,json}\""
+    },
+    "dependencies": {
+        "@astrojs/partytown": "^2.1.4",
+        "@astrojs/sitemap": "^3.2.1",
+        "@fontsource-variable/m-plus-1": "^5.1.0",
+        "@types/cheerio": "^0.22.35",
+        "astro": "^5.1.1",
+        "cheerio": "^1.0.0",
+        "microcms-js-sdk": "^3.1.2",
+        "sharp": "^0.33.5"
+    },
+    "devDependencies": {
+        "prettier": "^3.4.2",
+        "prettier-plugin-astro": "^0.14.1",
+        "shiki": "^1.26.2",
+        "shiki-transformer-copy-button": "^0.0.3"
+    }
+}
