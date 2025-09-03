@@ -4,7 +4,7 @@ declare module "shiki-transformer-copy-button" {
     }
 
     export interface NodeLike {
-        children: any[]
+        children: object[]
     }
 
     export interface TransformerContext {
